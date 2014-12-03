@@ -4,7 +4,7 @@ public class SwitchPosition {
 
 	private Switch theSwitch;
 	
-	private SwitchStateKind switchStateKind;
+	private SwitchStateKind switchState;
 	
 	private Route route;
 	
@@ -16,12 +16,12 @@ public class SwitchPosition {
 		this.theSwitch = theSwitch;
 	}
 
-	public SwitchStateKind getSwitchStateKind() {
-		return switchStateKind;
+	public SwitchStateKind getSwitchState() {
+		return switchState;
 	}
 
-	public void setSwitchStateKind(SwitchStateKind switchStateKind) {
-		this.switchStateKind = switchStateKind;
+	public void setSwitchState(SwitchStateKind switchState) {
+		this.switchState = switchState;
 	}
 
 	public Route getRoute() {

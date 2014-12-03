@@ -1,5 +1,6 @@
 package hu.bme.mit.trainbenchmark.pojo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Route {
@@ -30,9 +31,14 @@ public class Route {
 	public List<SwitchPosition> getSwitchPositions() {
 		return switchPositions;
 	}
-
 	public void setSwitchPositions(List<SwitchPosition> switchPositions) {
 		this.switchPositions = switchPositions;
+	}
+	public void addSwitchPosition(SwitchPosition switchPosition) {
+		if (switchPositions == null) {
+			switchPositions = new ArrayList<>();
+		}
+		switchPositions.add(switchPosition);
 	}
 
 	public List<Sensor> getRouteDefinition() {
@@ -41,5 +47,12 @@ public class Route {
 
 	public void setRouteDefinition(List<Sensor> routeDefinition) {
 		this.routeDefinition = routeDefinition;
+	}
+
+	public void addRouteDefinition(Sensor sensor) {
+		if (routeDefinition == null) {
+			routeDefinition = new ArrayList<>();
+		}
+		routeDefinition.add(sensor);
 	}
 }

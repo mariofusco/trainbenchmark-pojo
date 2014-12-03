@@ -2,23 +2,33 @@ package hu.bme.mit.trainbenchmark.generator.pojo;
 
 import hu.bme.mit.trainbenchmark.generator.Generator;
 import hu.bme.mit.trainbenchmark.generator.config.GeneratorConfig;
+import hu.bme.mit.trainbenchmark.pojo.Route;
+import hu.bme.mit.trainbenchmark.pojo.Segment;
+import hu.bme.mit.trainbenchmark.pojo.Sensor;
 import hu.bme.mit.trainbenchmark.pojo.Signal;
+import hu.bme.mit.trainbenchmark.pojo.Switch;
+import hu.bme.mit.trainbenchmark.pojo.SwitchPosition;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import javax.annotation.Resource;
+import java.util.Set;
 
 import org.apache.commons.cli.ParseException;
 
 public class POJOGenerator extends Generator {
 
 	private String modelPkg;
-	private Map<String, Class<?>> modelClasses = new HashMap<String, Class<?>>();
+	private Map<String, Class<?>> modelClasses = new HashMap<>();
+	
+	private Graph graph = new Graph();
 	
 	public POJOGenerator(final String args[]) throws ParseException {
 		super();
@@ -56,25 +66,29 @@ public class POJOGenerator extends Generator {
 	@Override
 	public void initModel() throws IOException {
 		modelPkg = Signal.class.getPackage().getName();
-		final String fileName = generatorConfig.getInstanceModelPath() + "/railway" + generatorConfig.getVariant() + generatorConfig.getSize() + ".concept";
 	}
 
 	@Override
 	public void persistModel() throws IOException {
-		throw new UnsupportedOperationException();
+		//checkXml();
+		String fileName = generatorConfig.getInstanceModelPath() + "/railway" + generatorConfig.getVariant() + generatorConfig.getSize() + ".xml";
+		PojoMarshaller marshaller = new PojoMarshaller();
+		Writer writer = new FileWriter(fileName); 
+		try {
+			marshaller.toXML(writer, graph);
+			writer.flush();
+		} finally {
+			writer.close();
+		}
 	}
-
-	protected Resource addIndividual(final String name, final String type) throws IOException {
-		throw new UnsupportedOperationException();
-	}
-
-	protected void addRelation(final String label, final Object source, final Object target) throws IOException {
-		throw new UnsupportedOperationException();
-	}
-
-	protected void addDataRelation(final Object source, final String relationName, final Integer value)
-			throws IOException {
-		throw new UnsupportedOperationException();
+	
+	private void checkXml() {
+		PojoMarshaller marshaller = new PojoMarshaller();
+		String xml = marshaller.toXML(graph);
+		Graph graphFromXml = marshaller.fromXML(xml);
+		if (!graph.toString().equals(graphFromXml.toString())) {
+			throw new RuntimeException("Wrong unmarshalling: different graphs!");
+		}
 	}
 
 	@Override
@@ -86,22 +100,44 @@ public class POJOGenerator extends Generator {
 			setAttribute(type, node, attribute.getKey(), attribute.getValue());
 		}
 		
-		throw new UnsupportedOperationException();
+		for (final Entry<String, Object> outgoingEdge : outgoingEdges.entrySet()) {
+			createEdge(outgoingEdge.getKey(), node, outgoingEdge.getValue());
+		}
+
+		for (final Entry<String, Object> incomingEdge : incomingEdges.entrySet()) {
+			createEdge(incomingEdge.getKey(), incomingEdge.getValue(), node);
+		}
+
+		graph.add(node);
+		return node;
 	}
 
 	@Override
 	protected void createEdge(final String label, final Object from, final Object to) throws IOException {
-		addRelation(label, from, to);
-
-		throw new UnsupportedOperationException();
+		if (to instanceof Long) {
+			return;
+		}
+		
+		setAttribute(null, from, label, to);
 	}
 
 	@Override
 	protected void setAttribute(String type, Object node, String key, Object value) throws IOException {
+		Method method = findMethod(node.getClass(), toSetter(key));
+		if (method == null || Collection.class.isAssignableFrom(method.getParameterTypes()[0])) {
+			method = findMethod(node.getClass(), toAdder(key));
+		}
+		if (method == null) {
+			throw new RuntimeException("Unknown attribute " + key + " on class " + node.getClass().getName());
+		}
+		invokeMethod(method, node, value);
+	}
+	
+	private void invokeMethod(Method method, Object node, Object value) {
 		try {
-			findMethod(node.getClass(), toSetter(key)).invoke(node, normalizeValue(value));
+			method.invoke(node, normalizeValue(value));
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Error invoking " + method + " on " + node + " with " + value, e);
 		}
 	}
 
@@ -115,11 +151,19 @@ public class POJOGenerator extends Generator {
 	}
 	
 	private String toSetter(String key) {
+		return toInvoker("set", key);
+	}
+	
+	private String toAdder(String key) {
+		return toInvoker("add", key);
+	}
+	
+	private String toInvoker(String prefix, String key) {
 		int underscore = key.indexOf('_');
 		if (underscore >= 0) {
 			key = key.substring(underscore+1);
 		}
-		return "set" + Character.toUpperCase(key.charAt(0)) + key.substring(1);
+		return prefix + Character.toUpperCase(key.charAt(0)) + key.substring(1);
 	}
 	
 	private Method findMethod(Class<?> clazz, String name) {
@@ -128,7 +172,42 @@ public class POJOGenerator extends Generator {
 				return m;
 			}
 		}
-		throw new RuntimeException("Unknown method " + name + " on class " + clazz);
+		return null;
 	}
-
+	
+	public static class Graph {
+		private Set<Segment> segments = new HashSet<>();
+		private Set<Switch> switchs = new HashSet<>();
+		private Set<SwitchPosition> switchPositions = new HashSet<>();
+		private Set<Signal> signals = new HashSet<>();
+		private Set<Route> routes = new HashSet<>();
+		private Set<Sensor> sensors = new HashSet<>();
+		
+		public void add(Object object) {
+			if (object instanceof Segment) {
+				segments.add((Segment)object);
+			} else if (object instanceof Switch) {
+				switchs.add((Switch)object);
+			} else if (object instanceof SwitchPosition) {
+				switchPositions.add((SwitchPosition)object);
+			} else if (object instanceof Signal) {
+				signals.add((Signal)object);
+			} else if (object instanceof Route) {
+				routes.add((Route)object);
+			} else if (object instanceof Sensor) {
+				sensors.add((Sensor)object);
+			} else {
+				throw new RuntimeException("Unknown object type: " + object.getClass());
+			}
+		}
+		
+		public String toString() {
+			return "segments: " + segments.size() +
+					"; switchs: " + switchs.size() +
+					"; switchPositions: " + switchPositions.size() +
+					"; signals: " + signals.size() +
+					"; routes: " + routes.size() +
+					"; sensors: " + sensors.size();
+		}
+	}
 }
