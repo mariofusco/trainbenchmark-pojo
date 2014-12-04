@@ -2,12 +2,9 @@ package hu.bme.mit.trainbenchmark.generator.pojo;
 
 import hu.bme.mit.trainbenchmark.generator.Generator;
 import hu.bme.mit.trainbenchmark.generator.config.GeneratorConfig;
-import hu.bme.mit.trainbenchmark.pojo.Route;
-import hu.bme.mit.trainbenchmark.pojo.Segment;
-import hu.bme.mit.trainbenchmark.pojo.Sensor;
+import hu.bme.mit.trainbenchmark.pojo.Graph;
 import hu.bme.mit.trainbenchmark.pojo.Signal;
-import hu.bme.mit.trainbenchmark.pojo.Switch;
-import hu.bme.mit.trainbenchmark.pojo.SwitchPosition;
+import org.apache.commons.cli.ParseException;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,21 +13,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
-import org.apache.commons.cli.ParseException;
-
-public class POJOGenerator extends Generator {
+public class PojoGenerator extends Generator {
 
 	private String modelPkg;
 	private Map<String, Class<?>> modelClasses = new HashMap<>();
 	
 	private Graph graph = new Graph();
 	
-	public POJOGenerator(final String args[]) throws ParseException {
+	public PojoGenerator(final String args[]) throws ParseException {
 		super();
 		generatorConfig = new GeneratorConfig(args);
 	}
@@ -173,41 +166,5 @@ public class POJOGenerator extends Generator {
 			}
 		}
 		return null;
-	}
-	
-	public static class Graph {
-		private Set<Segment> segments = new HashSet<>();
-		private Set<Switch> switchs = new HashSet<>();
-		private Set<SwitchPosition> switchPositions = new HashSet<>();
-		private Set<Signal> signals = new HashSet<>();
-		private Set<Route> routes = new HashSet<>();
-		private Set<Sensor> sensors = new HashSet<>();
-		
-		public void add(Object object) {
-			if (object instanceof Segment) {
-				segments.add((Segment)object);
-			} else if (object instanceof Switch) {
-				switchs.add((Switch)object);
-			} else if (object instanceof SwitchPosition) {
-				switchPositions.add((SwitchPosition)object);
-			} else if (object instanceof Signal) {
-				signals.add((Signal)object);
-			} else if (object instanceof Route) {
-				routes.add((Route)object);
-			} else if (object instanceof Sensor) {
-				sensors.add((Sensor)object);
-			} else {
-				throw new RuntimeException("Unknown object type: " + object.getClass());
-			}
-		}
-		
-		public String toString() {
-			return "segments: " + segments.size() +
-					"; switchs: " + switchs.size() +
-					"; switchPositions: " + switchPositions.size() +
-					"; signals: " + signals.size() +
-					"; routes: " + routes.size() +
-					"; sensors: " + sensors.size();
-		}
 	}
 }

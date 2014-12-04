@@ -2,7 +2,7 @@ package hu.bme.mit.trainbenchmark.pojo;
 
 import java.util.List;
 
-public class Sensor {
+public class Sensor extends ListenableObject {
 
 	private List<TrackElement> trackElements;
 

@@ -3,7 +3,7 @@ package hu.bme.mit.trainbenchmark.pojo;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TrackElement {
+public class TrackElement extends ListenableObject {
 	
 	private long id = -1;
 

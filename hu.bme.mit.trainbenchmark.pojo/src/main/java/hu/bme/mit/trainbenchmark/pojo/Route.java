@@ -3,7 +3,7 @@ package hu.bme.mit.trainbenchmark.pojo;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Route {
+public class Route extends ListenableObject {
 	
 	private Signal entry; 
 	private Signal exit; 

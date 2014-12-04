@@ -7,10 +7,10 @@ import java.io.IOException;
 
 import org.apache.commons.cli.ParseException;
 
-public class POJOGeneratorMain {
+public class PojoGeneratorMain {
 
 	public static void main(String[] args) throws ParseException, FileNotFoundException, IOException {
-		Generator generator = new POJOGenerator(args);
+		Generator generator = new PojoGenerator(args);
 		generator.generateModels();
 	}
 

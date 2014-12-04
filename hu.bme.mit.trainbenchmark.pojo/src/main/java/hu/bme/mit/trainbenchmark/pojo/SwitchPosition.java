@@ -1,6 +1,6 @@
 package hu.bme.mit.trainbenchmark.pojo;
 
-public class SwitchPosition {
+public class SwitchPosition extends ListenableObject {
 
 	private Switch theSwitch;
 	

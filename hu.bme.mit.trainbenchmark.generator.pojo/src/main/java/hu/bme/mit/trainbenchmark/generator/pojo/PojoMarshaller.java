@@ -1,5 +1,14 @@
 package hu.bme.mit.trainbenchmark.generator.pojo;
 
+import com.google.common.base.Strings;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import com.thoughtworks.xstream.io.xml.DomDriver;
+import hu.bme.mit.trainbenchmark.pojo.Graph;
 import hu.bme.mit.trainbenchmark.pojo.Route;
 import hu.bme.mit.trainbenchmark.pojo.Segment;
 import hu.bme.mit.trainbenchmark.pojo.Sensor;
@@ -17,25 +26,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.converters.Converter;
-import com.thoughtworks.xstream.converters.MarshallingContext;
-import com.thoughtworks.xstream.converters.UnmarshallingContext;
-import com.thoughtworks.xstream.io.HierarchicalStreamReader;
-import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-import com.thoughtworks.xstream.io.xml.DomDriver;
-
 public class PojoMarshaller {
 	private final ObjectStore objectStore = new ObjectStore();
 	private final XStream xStream = new XStream(new DomDriver());
-	
-	PojoMarshaller() {
+
+	public PojoMarshaller() {
 		xStream.setMode(XStream.ID_REFERENCES);
         xStream.registerConverter(new TrackElementConverter(objectStore));
         xStream.registerConverter(new SwitchConverter(objectStore));
         xStream.registerConverter(new SegmentConverter(objectStore));
         xStream.registerConverter(new SwitchPositionConverter(objectStore));
-        xStream.alias("graph", POJOGenerator.Graph.class);
+        xStream.alias("graph", Graph.class);
         xStream.alias("trackElement", TrackElement.class);
         xStream.alias("switch", Switch.class);
         xStream.alias("segment", Segment.class);
@@ -101,6 +102,9 @@ public class PojoMarshaller {
                     	List<Sensor> sensors = readObjectList(reader, context, Sensor.class);
                     	trackElement.setSensors(sensors);
                     } else if ("connectsTo".equals(name)) {
+						if (Strings.isNullOrEmpty(value)) {
+							return;
+						}
                     	String[] connects = value.split(",");
                     	for (int i = 0; i < connects.length; i++) {
                     		long connectId = Long.parseLong(connects[i]);

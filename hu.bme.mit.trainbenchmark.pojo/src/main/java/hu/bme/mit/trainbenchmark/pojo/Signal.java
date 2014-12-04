@@ -1,6 +1,6 @@
 package hu.bme.mit.trainbenchmark.pojo;
 
-public class Signal {
+public class Signal extends ListenableObject {
 
 	private static final SignalStateKind SIGNAL_ACTUAL_STATE_EDEFAULT = SignalStateKind.SIGNALSTATEKIND_STOP;
 
