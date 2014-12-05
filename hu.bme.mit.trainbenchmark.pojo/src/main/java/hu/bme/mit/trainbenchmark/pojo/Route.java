@@ -15,17 +15,19 @@ public class Route extends ListenableObject {
 	public Signal getEntry() {
 		return entry;
 	}
-	
 	public void setEntry(Signal entry) {
+		Signal oldEntry = entry;
 		this.entry = entry;
+		firePropertyChange(this, "entry", oldEntry, entry);
 	}
 
 	public Signal getExit() {
 		return exit;
 	}
-	
 	public void setExit(Signal exit) {
+		Signal oldExit = exit;
 		this.exit = exit;
+		firePropertyChange(this, "exit", oldExit, exit);
 	}
 
 	public List<SwitchPosition> getSwitchPositions() {
@@ -44,9 +46,12 @@ public class Route extends ListenableObject {
 	public List<Sensor> getRouteDefinition() {
 		return routeDefinition;
 	}
-
 	public void setRouteDefinition(List<Sensor> routeDefinition) {
 		this.routeDefinition = routeDefinition;
+	}
+	public void removeRouteDefinition(int index) {
+		routeDefinition.remove(index);
+		firePropertyChange(this, "routeDefinition", routeDefinition, routeDefinition);
 	}
 
 	public void addRouteDefinition(Sensor sensor) {

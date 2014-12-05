@@ -16,13 +16,36 @@ public class TrackElement extends ListenableObject {
 	public void setSensors(List<Sensor> sensors) {
 		this.sensors = sensors;
 	}
+	public boolean hasSensors() {
+		return sensors != null && !sensors.isEmpty();
+	}
+
 	public void addSensor(Sensor sensor) {
 		if (sensors == null) {
 			sensors = new ArrayList<>();
 		}
 		sensors.add(sensor);
 	}
-	
+	public void removeSensor(Sensor sensor) {
+		sensors.remove(sensor);
+	}
+
+	public void addSensorBidirectionallyAndFire(Sensor sensor) {
+		addSensor(sensor);
+		sensor.addTrackElement(this);
+		firePropertyChange(sensor, "trackElements", sensor.getTrackElements(), sensor.getTrackElements());
+		firePropertyChange("sensors", sensors, sensors);
+	}
+
+	public void clearSensors() {
+		for (Sensor sensor : sensors) {
+			sensor.removeTrackElement(this);
+			firePropertyChange(sensor, "trackElements", sensor.getTrackElements(), sensor.getTrackElements());
+		}
+		sensors.clear();
+		firePropertyChange("sensors", sensors, sensors);
+	}
+
 	public long getId() {
 		if (id < 0) {
 			id = IdGenerator.next();

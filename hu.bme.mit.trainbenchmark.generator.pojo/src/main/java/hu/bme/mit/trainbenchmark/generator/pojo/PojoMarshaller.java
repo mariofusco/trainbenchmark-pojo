@@ -45,30 +45,30 @@ public class PojoMarshaller {
         xStream.alias("route", Route.class);
 	}
 	
-	public String toXML(Object obj) {
-        return xStream.toXML(obj);
+	public String toXML(Graph graph) {
+        return xStream.toXML(graph);
     }
 	
-	public void toXML(Writer writer, Object obj) {
-        xStream.toXML(obj, writer);
+	public void toXML(Writer writer, Graph graph) {
+        xStream.toXML(graph, writer);
     }
 
-    public <T> T fromXML(File file) {
-        T result = (T)xStream.fromXML(file);
+    public Graph fromXML(File file) {
+		Graph graph = (Graph)xStream.fromXML(file);
         objectStore.checkEndUnmarshall();
-        return result;
+        return graph;
     }
 
-    public <T> T fromXML(URL url) {
-    	T result = (T)xStream.fromXML(url);
+    public Graph fromXML(URL url) {
+		Graph graph = (Graph)xStream.fromXML(url);
         objectStore.checkEndUnmarshall();
-        return result;
+        return graph;
     }
 
-    public <T> T fromXML(String string) {
-    	T result = (T)xStream.fromXML(string);
+    public Graph fromXML(String string) {
+		Graph graph = (Graph)xStream.fromXML(string);
         objectStore.checkEndUnmarshall();
-        return result;
+        return graph;
     }
     
     public static class TrackElementConverter extends AbstractXStreamConverter {
@@ -223,7 +223,7 @@ public class PojoMarshaller {
 			return switchPosition;
 		}
     }
-    
+
 	public static abstract class AbstractXStreamConverter implements Converter {
 	    private final Class type;
 	    protected final ObjectStore store;
@@ -234,7 +234,7 @@ public class PojoMarshaller {
 	    }
 
 	    public boolean canConvert(Class clazz) {
-	        return type.isAssignableFrom(clazz);
+	        return type == clazz;
 	    }
 
 	    protected void writeAttribute(HierarchicalStreamWriter writer, String name, String value) {

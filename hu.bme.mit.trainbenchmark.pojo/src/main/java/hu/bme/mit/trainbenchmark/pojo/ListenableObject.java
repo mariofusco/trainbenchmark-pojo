@@ -12,7 +12,13 @@ public abstract class ListenableObject {
         this.changeNotifier = changeNotifier;
     }
 
+    protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
+        firePropertyChange(this, propertyName, oldValue, newValue);
+    }
+
     protected void firePropertyChange(Object source, String propertyName, Object oldValue, Object newValue) {
-        changeNotifier.firePropertyChange(source, propertyName, oldValue, newValue);
+        if (changeNotifier != null) {
+            changeNotifier.firePropertyChange(source, propertyName, oldValue, newValue);
+        }
     }
 }

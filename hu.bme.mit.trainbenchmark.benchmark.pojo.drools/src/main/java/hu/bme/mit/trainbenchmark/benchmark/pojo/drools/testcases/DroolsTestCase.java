@@ -12,6 +12,7 @@ import org.kie.api.builder.KieFileSystem;
 import org.kie.api.builder.Message;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.rule.FactHandle;
 import org.kie.api.runtime.rule.LiveQuery;
 
 import java.beans.PropertyChangeEvent;
@@ -26,6 +27,7 @@ public abstract class DroolsTestCase implements TestCase {
     protected BenchmarkConfig bc;
     protected KieSession ksession;
     protected LiveQuery query;
+    protected Graph graph;
 
     @Override
     public String getTool() {
@@ -68,8 +70,8 @@ public abstract class DroolsTestCase implements TestCase {
         query = null;
         readKnowledgeBase();
 
-        File file = new File(bc.getBenchmarkArtifact());
-        Graph graph = new PojoMarshaller().fromXML(file);
+        graph = new PojoMarshaller().fromXML(new File(bc.getBenchmarkArtifact()));
+        graph.wireBidirectionConnections();
 
         for (Object object : graph) {
             ksession.insert(object);
@@ -77,8 +79,14 @@ public abstract class DroolsTestCase implements TestCase {
 
         graph.addPropertyChangeListener(new PropertyChangeListener() {
             @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                // TODO
+            public void propertyChange(PropertyChangeEvent event) {
+                Object source = event.getSource();
+                FactHandle factHandle = ksession.getFactHandle(source);
+                if (factHandle != null) {
+                    ksession.update(factHandle, source);
+                } else {
+                    ksession.insert(source);
+                }
             }
         });
 

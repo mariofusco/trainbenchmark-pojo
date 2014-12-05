@@ -2,6 +2,7 @@ package hu.bme.mit.trainbenchmark.pojo;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -11,7 +12,7 @@ public class Graph implements Iterable<Object> {
 	private transient ChangeNotifier changeNotifier;
 	
 	private Set<Segment> segments = new HashSet<>();
-	private Set<Switch> switchs = new HashSet<>();
+	private Set<Switch> switches = new HashSet<>();
 	private Set<SwitchPosition> switchPositions = new HashSet<>();
 	private Set<Signal> signals = new HashSet<>();
 	private Set<Route> routes = new HashSet<>();
@@ -21,7 +22,7 @@ public class Graph implements Iterable<Object> {
 		if (object instanceof Segment) {
 			segments.add((Segment)object);
 		} else if (object instanceof Switch) {
-			switchs.add((Switch)object);
+			switches.add((Switch) object);
 		} else if (object instanceof SwitchPosition) {
 			switchPositions.add((SwitchPosition)object);
 		} else if (object instanceof Signal) {
@@ -37,6 +38,35 @@ public class Graph implements Iterable<Object> {
 		registerNotifier(object);
 	}
 
+	public void wireBidirectionConnections() {
+		for (Segment segment : segments) {
+			if (segment.getSensors() != null) {
+				for (Sensor sensor : segment.getSensors()) {
+					sensor.addTrackElement(segment);
+				}
+			}
+		}
+		for (Switch switchObj : switches) {
+			if (switchObj.getSensors() != null) {
+				for (Sensor sensor : switchObj.getSensors()) {
+					sensor.addTrackElement(switchObj);
+				}
+			}
+		}
+	}
+
+	public Collection<Segment> getSegments() {
+		return segments;
+	}
+
+	public Collection<Route> getRoutes() {
+		return routes;
+	}
+
+	public Collection<Switch> getSwitches() {
+		return switches;
+	}
+
 	private void registerNotifier(Object object) {
 		if (changeNotifier != null && object instanceof ListenableObject) {
 			((ListenableObject) object).setChangeNotifier(changeNotifier);
@@ -45,7 +75,7 @@ public class Graph implements Iterable<Object> {
 
 	public String toString() {
 		return "segments: " + segments.size() +
-				"; switchs: " + switchs.size() +
+				"; switches: " + switches.size() +
 				"; switchPositions: " + switchPositions.size() +
 				"; signals: " + signals.size() +
 				"; routes: " + routes.size() +
@@ -54,7 +84,7 @@ public class Graph implements Iterable<Object> {
 
 	@Override
 	public Iterator<Object> iterator() {
-		return new MultiIterator(segments, switchs, switchPositions, signals, routes, sensors);
+		return new MultiIterator(segments, switches, switchPositions, signals, routes, sensors);
 	}
 	
 	public static class MultiIterator implements Iterator<Object> {
@@ -82,7 +112,7 @@ public class Graph implements Iterable<Object> {
 		}
 		
 		private Object fetchNext() {
-			while (counter < iterables.length) {
+			while (currentIterator != null || counter < iterables.length) {
 				if (currentIterator == null) {
 					currentIterator = iterables[counter++].iterator();
 				}

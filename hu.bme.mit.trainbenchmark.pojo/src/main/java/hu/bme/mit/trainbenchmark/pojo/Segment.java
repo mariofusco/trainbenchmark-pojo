@@ -9,6 +9,8 @@ public class Segment extends TrackElement {
 	}
 
 	public void setLength(int length) {
+		int oldLength = this.length;
 		this.length = length;
+		firePropertyChange("length", oldLength, length);
 	}
 }
